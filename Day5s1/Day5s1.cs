@@ -1,96 +1,74 @@
 ﻿
+using System.Collections;
+using System.Text.RegularExpressions;
 using AdventOfCode.Day4s1;
 
-namespace AdventOfCode.Day4s2;
+namespace AdventOfCode.Day5s1;
 
-public class Day4s2
+public class Day5s1
 {
-  private static string[][] arr;
-  private static string xmas = "XMAS";
-  
+
   public static void Run()
   {
-    string[] lines = File.ReadAllLines("../../../Day4s2/input");
-    var lineLen = lines[0].Length;
-    arr = new string[lines.Length][];
-    int totalXmas = 0;
-    for (int i = 0; i < lines.Length; i++)
-    {
-      arr[i] = new string[lineLen];
-      for (int j = 0; j < lineLen; j++)
-      {
-        arr[i][j] = "" + lines[i][j];    
-      }
-    }
+    string[] lines = File.ReadAllLines("./Day5s1/input");
     
-    for (int currentY = 1; currentY < lineLen-1; currentY++)
+    Dictionary<int, List<int>> rules = new Dictionary<int, List<int>>();
+    List<List<int>> prints = new List<List<int>>();
+    int total = 0;
+    
+    int i = 0;
+    for (; i < lines.Length; i++)
     {
-      for (int currentX = 1; currentX < lines.Length-1; currentX++)
+      if (String.IsNullOrEmpty(lines[i]))
       {
-        var current = arr[currentY][currentX];
-        if (current == "A")
+        break;
+      }
+      var split = lines[i].Split('|').Select(int.Parse).ToArray();
+      var toLookfor = split[1];
+      var toVerify = split[0];
+      if (!rules.ContainsKey(toLookfor))
+      {
+        rules.Add(toLookfor, new List<int>());
+      }
+      rules[toLookfor].Add(toVerify);
+    }
+    i++;
+    for (; i < lines.Length; i++)
+    {
+      var numbers = lines[i].Split(',');
+      var numblist = numbers.Select(int.Parse).ToList();
+      prints.Add(numblist);
+    }
+
+    
+    foreach (var print in prints)
+    {
+      bool isOk = true;
+      foreach (var number in print)
+      {
+        if (!rules.ContainsKey(number))
         {
-          var nw = Direction.NORTHWEST.NewDirection(currentX, currentY);
-          var ne = Direction.NORTHEAST.NewDirection(currentX, currentY);
-          var sw = Direction.SOUTHWEST.NewDirection(currentX, currentY);
-          var se = Direction.SOUTHEAST.NewDirection(currentX, currentY);
-          var nwc =  arr[nw.y][nw.x];
-          var nec = arr[ne.y][ne.x];
-          var swc = arr[sw.y][sw.x];
-          var sec = arr[se.y][se.x];
-
-          var p = nwc == "M" && sec == "S" || nwc == "S" && sec == "M";
-          var q = nec == "M" && swc == "S" || nec == "S" && swc == "M";
-
-          if (p && q)
+          continue;        
+        }
+        foreach (var rule in rules[number])
+        {
+          var numberPos = print.IndexOf(number);
+          var rulePos = print.IndexOf(rule);
+          if (numberPos < rulePos)
           {
-            totalXmas++;
+            isOk = false;
+            break;
           }
         }
       }
-    }
-    Console.WriteLine(totalXmas);
-  }
 
-  private static bool testDirection(int currentX, int currentY, Direction direction, int depth)
-  {
-    if (depth >= xmas.Length)
-    {
-      return true;
+      if (isOk)
+      {
+        var m = print.Count / 2;
+        var mid = print[m];
+        total += mid;
+      }
     }
-    if(currentX < 0 || currentX >= arr[0].Length || currentY < 0 || currentY >= arr[depth].Length)
-    {
-      return false;
-    }
-    var current = arr[currentY][currentX];
-    if (current == "" + xmas[depth])
-    {
-      var (x,y) = direction.NewDirection(currentX, currentY);
-      return testDirection(x, y, direction, depth + 1);
-    }
-    return false;
-  }
-}
-
-public enum Direction
-{
-  NORTHEAST,
-  NORTHWEST,
-  SOUTHEAST,
-  SOUTHWEST
-}
-
-public static class DirectionExtensions
-{
-  public static (int x, int y) NewDirection(this Direction dir, int currentX, int currentY)
-  {
-    return dir switch
-    {
-      Direction.NORTHEAST => (currentX + 1, currentY - 1),
-      Direction.NORTHWEST => (currentX - 1, currentY - 1),
-      Direction.SOUTHEAST => (currentX + 1, currentY + 1),
-      Direction.SOUTHWEST => (currentX - 1, currentY + 1),
-      _ => throw new ArgumentOutOfRangeException(nameof(dir), dir, null)
-    };
+    Console.WriteLine(total);
   }
 }

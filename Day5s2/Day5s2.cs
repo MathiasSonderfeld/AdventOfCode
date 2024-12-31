@@ -3,16 +3,17 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using AdventOfCode.Day4s1;
 
-namespace AdventOfCode.Day5s1;
+namespace AdventOfCode.Day5s2;
 
-public class Day5s1
+public class Day5s2
 {
+  static Dictionary<int, List<int>> rules = new();
+
 
   public static void Run()
   {
-    string[] lines = File.ReadAllLines("./Day5s1/input");
+    string[] lines = File.ReadAllLines("./Day5s2/input");
     
-    Dictionary<int, List<int>> rules = new Dictionary<int, List<int>>();
     List<List<int>> prints = new List<List<int>>();
     int total = 0;
     
@@ -39,36 +40,80 @@ public class Day5s1
       var numblist = numbers.Select(int.Parse).ToList();
       prints.Add(numblist);
     }
-
+    List<List<int>> brokenRecordsList = new List<List<int>>();
     
     foreach (var print in prints)
     {
-      bool isOk = true;
-      foreach (var number in print)
+      var (isOk, index) = isValid(print);
+      if (!isOk)
       {
-        if (!rules.ContainsKey(number))
-        {
-          continue;        
-        }
-        foreach (var rule in rules[number])
-        {
-          var numberPos = print.IndexOf(number);
-          var rulePos = print.IndexOf(rule);
-          if (numberPos < rulePos)
-          {
-            isOk = false;
-            break;
-          }
-        }
-      }
-
-      if (isOk)
-      {
-        var m = print.Count / 2;
-        var mid = print[m];
-        total += mid;
+        brokenRecordsList.Add(print);
       }
     }
+    
+
+    foreach (var brokenRecord in brokenRecordsList)
+    {
+      var fixedRecord = CorrectUpdate(brokenRecord);
+      
+      var m = fixedRecord.Count / 2;
+      var mid = fixedRecord[m];
+      total += mid;
+    }
+    
     Console.WriteLine(total);
+  }
+  
+  static List<int> CorrectUpdate(List<int> updateLine) {
+    
+    for (int checkIndex = 0; checkIndex < updateLine.Count; checkIndex++) {
+      
+      if (!rules.ContainsKey(updateLine[checkIndex])) continue;
+      
+      var notAllowedAfterNumbers = rules[updateLine[checkIndex]];
+      
+      for (int errorSearchIndex = checkIndex + 1; errorSearchIndex < updateLine.Count; errorSearchIndex++) {
+        
+        if (notAllowedAfterNumbers.Contains(updateLine[errorSearchIndex])) {
+          
+          var errorFound = updateLine[errorSearchIndex];
+          for (int swapIndex = errorSearchIndex; swapIndex > checkIndex; swapIndex--) {
+            updateLine[swapIndex] = updateLine[swapIndex - 1];
+          }
+          updateLine[checkIndex] = errorFound;
+        }
+      }
+    }
+
+    if(isValid(updateLine.ToList()).valid) return updateLine;
+
+    return CorrectUpdate(updateLine);
+  }
+
+  private static (bool valid, int index) isValid(List<int> numbers)
+  {
+    bool isOk = true;
+    int index = -1;
+    for (int i = 0; i < numbers.Count; i++)
+    {
+      var number = numbers[i];
+      if (!rules.ContainsKey(number))
+      {
+        continue;        
+      }
+      foreach (var rule in rules[number])
+      {
+        var numberPos = numbers.IndexOf(number);
+        var rulePos = numbers.IndexOf(rule);
+        if (numberPos < rulePos)
+        {
+          isOk = false;
+          index = i;
+          break;
+        }
+      }
+    }
+    
+    return (isOk, index);
   }
 }

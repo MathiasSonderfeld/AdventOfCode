@@ -1,16 +1,16 @@
 ﻿
 using AdventOfCode.Day4s1;
 
-namespace AdventOfCode.Day4s1;
+namespace AdventOfCode.Day4s2;
 
-public class Day4s1
+public class Day4s2
 {
   private static string[][] arr;
   private static string xmas = "XMAS";
   
   public static void Run()
   {
-    string[] lines = File.ReadAllLines("../../../Day4s1/input");
+    string[] lines = File.ReadAllLines("../../../Day4s2/input");
     var lineLen = lines[0].Length;
     arr = new string[lines.Length][];
     int totalXmas = 0;
@@ -23,23 +23,29 @@ public class Day4s1
       }
     }
     
-    for (int currentY = 0; currentY < lineLen; currentY++)
+    for (int currentY = 1; currentY < lineLen-1; currentY++)
     {
-      for (int currentX = 0; currentX < lines.Length; currentX++)
+      for (int currentX = 1; currentX < lines.Length-1; currentX++)
       {
         var current = arr[currentY][currentX];
-        if (current == "X")
+        if (current == "A")
         {
-          foreach (var dir in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+          var nw = Direction.NORTHWEST.NewDirection(currentX, currentY);
+          var ne = Direction.NORTHEAST.NewDirection(currentX, currentY);
+          var sw = Direction.SOUTHWEST.NewDirection(currentX, currentY);
+          var se = Direction.SOUTHEAST.NewDirection(currentX, currentY);
+          var nwc =  arr[nw.y][nw.x];
+          var nec = arr[ne.y][ne.x];
+          var swc = arr[sw.y][sw.x];
+          var sec = arr[se.y][se.x];
+
+          var p = nwc == "M" && sec == "S" || nwc == "S" && sec == "M";
+          var q = nec == "M" && swc == "S" || nec == "S" && swc == "M";
+
+          if (p && q)
           {
-            var r = testDirection(currentX, currentY, dir, 0);
-            if (r)
-            {
-              Console.WriteLine("found xmas at " + currentX + ", " + currentY + ", " + dir);
-              totalXmas++;
-            }
+            totalXmas++;
           }
-          
         }
       }
     }
@@ -68,10 +74,6 @@ public class Day4s1
 
 public enum Direction
 {
-  NORTH,
-  SOUTH,
-  EAST,
-  WEST,
   NORTHEAST,
   NORTHWEST,
   SOUTHEAST,
@@ -84,10 +86,6 @@ public static class DirectionExtensions
   {
     return dir switch
     {
-      Direction.NORTH => (currentX, currentY - 1),
-      Direction.SOUTH => (currentX, currentY + 1),
-      Direction.EAST => (currentX + 1, currentY),
-      Direction.WEST => (currentX - 1, currentY),
       Direction.NORTHEAST => (currentX + 1, currentY - 1),
       Direction.NORTHWEST => (currentX - 1, currentY - 1),
       Direction.SOUTHEAST => (currentX + 1, currentY + 1),

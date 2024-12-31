@@ -5,115 +5,143 @@ using AdventOfCode.Day4s1;
 
 namespace AdventOfCode.Day6s2;
 
-public class Day5s2
+public class Day6s2
 {
-  static Dictionary<int, List<int>> rules = new();
-
-
   public static void Run()
   {
-    string[] lines = File.ReadAllLines("./Day5s2/input");
-    
-    List<List<int>> prints = new List<List<int>>();
+    string[] lines = File.ReadAllLines("./Day6s2/input");
+    var map = new string[lines.Length, lines[0].Length];
     int total = 0;
-    
-    int i = 0;
-    for (; i < lines.Length; i++)
+    Position start = new Position();
+    for (int i = 0; i < lines.Length; i++)
     {
-      if (String.IsNullOrEmpty(lines[i]))
+      for (int j = 0; j < lines[0].Length; j++)
       {
-        break;
-      }
-      var split = lines[i].Split('|').Select(int.Parse).ToArray();
-      var toLookfor = split[1];
-      var toVerify = split[0];
-      if (!rules.ContainsKey(toLookfor))
-      {
-        rules.Add(toLookfor, new List<int>());
-      }
-      rules[toLookfor].Add(toVerify);
-    }
-    i++;
-    for (; i < lines.Length; i++)
-    {
-      var numbers = lines[i].Split(',');
-      var numblist = numbers.Select(int.Parse).ToList();
-      prints.Add(numblist);
-    }
-    List<List<int>> brokenRecordsList = new List<List<int>>();
-    
-    foreach (var print in prints)
-    {
-      var (isOk, index) = isValid(print);
-      if (!isOk)
-      {
-        brokenRecordsList.Add(print);
+        map[j,i] = "" + lines[i][j];
+        if (lines[i][j] == '^')
+        {
+          start.X = j;
+          start.Y = i;
+        }
       }
     }
-    
+    Console.WriteLine($"loading map completed");
+    // add code here
 
-    foreach (var brokenRecord in brokenRecordsList)
-    {
-      var fixedRecord = CorrectUpdate(brokenRecord);
-      
-      var m = fixedRecord.Count / 2;
-      var mid = fixedRecord[m];
-      total += mid;
-    }
+    var (steps,  loop) = WalkFrom(map, new Step() { Direction = Direction.Up, Position = start });
+    Console.WriteLine($"loading path completed");
     
-    Console.WriteLine(total);
+    
+    total = steps.Distinct().AsParallel().Select<Step, Position?>(step =>
+      {
+        string[,] clone = map.Clone() as string[,];
+        var nextPosition = step.NextPosition();
+        if (!isValidPosition(map, nextPosition))
+        {
+          return null;
+        }
+        clone[nextPosition.X, nextPosition.Y] = "#";
+
+        var w = WalkFrom(clone, step);
+        if (w.loop) return nextPosition;
+        return null;
+      })
+      .Where(w => w != null)
+      .Distinct()
+      .Count();
+    Console.WriteLine($"identifying path completed");
+
+    Console.WriteLine($"identifying loops completed");
+
+    // print results
+    // Console.WriteLine($"Total steps: {steps.Count}");
+    // Console.WriteLine($"Loop: {loop}");
+    Console.WriteLine($"total: {total}");
+    // Console.WriteLine($"Total fields: {steps.Select(x => x.Position).Distinct().Count()}");
+  }
+
+  static (List<Step> steps, bool loop) WalkFrom(string[,] map, Step here)
+  {
+    List<Step> steps = new List<Step>();
+    var currentStep = here;
+    bool isLoop = false;
+    while (isValidPosition(map, currentStep.Position) && !isLoop)
+    {
+      steps.Add(currentStep);
+      currentStep = GetNextPosition(map, currentStep);
+      isLoop = steps.Contains(currentStep);
+    }
+
+    return (steps, isLoop);
   }
   
-  static List<int> CorrectUpdate(List<int> updateLine) {
+  static Step GetNextPosition(string[,] map, Step step)
+  {
     
-    for (int checkIndex = 0; checkIndex < updateLine.Count; checkIndex++) {
-      
-      if (!rules.ContainsKey(updateLine[checkIndex])) continue;
-      
-      var notAllowedAfterNumbers = rules[updateLine[checkIndex]];
-      
-      for (int errorSearchIndex = checkIndex + 1; errorSearchIndex < updateLine.Count; errorSearchIndex++) {
-        
-        if (notAllowedAfterNumbers.Contains(updateLine[errorSearchIndex])) {
-          
-          var errorFound = updateLine[errorSearchIndex];
-          for (int swapIndex = errorSearchIndex; swapIndex > checkIndex; swapIndex--) {
-            updateLine[swapIndex] = updateLine[swapIndex - 1];
-          }
-          updateLine[checkIndex] = errorFound;
-        }
-      }
+    var nextPosition = step.NextPosition();
+    if (!isValidPosition(map, nextPosition))
+    {
+      return step with {Position = nextPosition};
     }
-
-    if(isValid(updateLine.ToList()).valid) return updateLine;
-
-    return CorrectUpdate(updateLine);
+    var isValid = isSteppable(map, nextPosition);
+    var newStep = step with {Position = nextPosition};
+    while (!isValid)
+    {
+      var newDirection = rotate(newStep.Direction);
+      newStep = step with {Direction = newDirection};
+      nextPosition = newStep.NextPosition();
+      isValid = isSteppable(map, nextPosition);
+    }
+    return newStep;
   }
 
-  private static (bool valid, int index) isValid(List<int> numbers)
+  static bool isSteppable(string[,] map, Position position)
   {
-    bool isOk = true;
-    int index = -1;
-    for (int i = 0; i < numbers.Count; i++)
+    var field = map[position.X, position.Y];
+    return "#" != field;
+  }
+
+  static Direction rotate(Direction direction)
+  {
+    return direction switch
     {
-      var number = numbers[i];
-      if (!rules.ContainsKey(number))
-      {
-        continue;        
-      }
-      foreach (var rule in rules[number])
-      {
-        var numberPos = numbers.IndexOf(number);
-        var rulePos = numbers.IndexOf(rule);
-        if (numberPos < rulePos)
-        {
-          isOk = false;
-          index = i;
-          break;
-        }
-      }
-    }
-    
-    return (isOk, index);
+      Direction.Up => Direction.Right,
+      Direction.Right => Direction.Down,
+      Direction.Down => Direction.Left,
+      Direction.Left => Direction.Up,
+      _ =>  throw new NotImplementedException()
+    };
+  }
+  
+  static bool isValidPosition(string[,] map, Position position)
+  {
+    return position is { X: >= 0, Y: >= 0 } && position.X < map.GetLength(0) && position.Y < map.GetLength(1);
   }
 }
+
+record Position
+{
+  public int X { get; set; }
+  public int Y { get; set; }
+}
+
+record Step
+{
+  public Position Position { get; set; }
+  public Direction Direction { get; set; }
+
+  
+  public Position NextPosition()
+  {
+    return Direction switch
+    {
+      Direction.Up => new Position { X = Position.X, Y = Position.Y - 1 },
+      Direction.Down => new Position { X = Position.X, Y = Position.Y + 1 },
+      Direction.Left => new Position { X = Position.X - 1, Y = Position.Y },
+      Direction.Right => new Position { X = Position.X + 1, Y = Position.Y },
+      _ => throw new NotImplementedException(),
+    };
+  }
+}
+
+enum Direction { Up, Down, Left, Right }

@@ -1,6 +1,6 @@
-﻿namespace AdventOfCode.Day1s1;
+﻿namespace AdventOfCode.Day2s2;
 
-public class Day2s1
+public class Day2s2
 {
   public static void Run()
   {
@@ -12,15 +12,36 @@ public class Day2s1
     {
       string[] nums = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
       var l = nums.ToList().ConvertAll(int.Parse);
-      var increasing = IsConsistent(l, true);
-      var decreasing = IsConsistent(l, false);
-      var isInMargin = IsInMargin(l);
-      if (isInMargin && (increasing || decreasing))
+      var isSafe = IsSafe(l);
+      if (isSafe)
       {
         total++;
       }
+      else
+      {
+        for (int i = 0; i < l.Count; i++)
+        {
+          var copy = new List<int>();
+          copy.AddRange(l);
+          copy.RemoveAt(i);
+          isSafe = IsSafe(copy);
+          if (isSafe)
+          {
+            total++;
+            break;
+          }
+        }
+      }
     }
     Console.WriteLine(total);
+  }
+
+  private static bool IsSafe(List<int> numbers)
+  {
+    var increasing = IsConsistent(numbers, true);
+    var decreasing = IsConsistent(numbers, false);
+    var isInMargin = IsInMargin(numbers);
+    return isInMargin && (increasing || decreasing);
   }
 
   private static bool IsConsistent(List<int> numbers, bool increasing)

@@ -3,9 +3,9 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using AdventOfCode.Day4s1;
 
-namespace AdventOfCode.Day5s2;
+namespace AdventOfCode.Day6s1;
 
-public class Day5s2
+public class Day6s1
 {
   static Dictionary<int, List<int>> rules = new();
 

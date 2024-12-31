@@ -1,10 +1,10 @@
 ﻿namespace AdventOfCode.Day1s1;
 
-public class Day1s1
+public class Day1s2
 {
   public static void Run()
   {
-    string inputFile = File.ReadAllText("../../../Day1s1/input");
+    string inputFile = File.ReadAllText("../../../Day1s2/input");
     string[] lines = inputFile.Split("\r\n");
     List<int> left = new List<int>();
     List<int> right = new List<int>();
@@ -16,13 +16,12 @@ public class Day1s1
       left.Add(a);
       right.Add(b);
     }
-    left.Sort();
-    right.Sort();
-    int total = 0;
+    
+    int similarityCode = 0;
     for (int i = 0; i < lines.Length; i++)
     {
-      total += Math.Abs(left[i] - right[i]);
+      similarityCode += left[i] * right.FindAll(x => x == left[i]).Count();
     }
-    Console.WriteLine(total);
+    Console.WriteLine(similarityCode);
   }   
 }
