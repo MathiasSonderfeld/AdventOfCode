@@ -12,7 +12,12 @@ public class Day7S1
             var result = long.Parse(split[0]);
             var numbers = split[1].Split(" ").Select(long.Parse).ToList();
             
-            return IsReachable(result,0, numbers) ? result : 0;
+            if (IsReachable(result, numbers[0], numbers.Skip(1).ToList()))
+            {
+                Console.WriteLine($"{result} is reachable with: {line}");
+                return result;
+            }
+            return 0;
         }).Sum();
         
         Console.WriteLine(sum);
@@ -20,7 +25,7 @@ public class Day7S1
 
     private static bool IsReachable(long result, long startValue, List<long> numbers)
     {
-        if(startValue == result) return true;
+        if(startValue == result && numbers.Count == 0) return true;
         if(startValue > result) return false;
         if(numbers.Count == 0) return false;
         
