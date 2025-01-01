@@ -1,10 +1,11 @@
-﻿using System.Text;
+﻿using System.Collections.Concurrent;
+using System.Text;
 
 namespace AdventOfCode.Day11s2;
 
 public class Day11S2
 {
-    
+    private static ConcurrentDictionary<string, long> cache = new();
     public static void Run()
     {
         string line = File.ReadAllText("./Day11s2/input");
@@ -14,18 +15,29 @@ public class Day11S2
         Console.WriteLine(total);
     }
 
-    private static long CountStones(long value, int depth)
+    private static long CountStones(long stone, long depth)
     {
-        if(depth == 50) return 1;
-
-        if (value == 0) return CountStones(1, depth + 1);
-
-        if (("" + value).Length % 2 == 0)
+        long result;
+        if (depth == 75)
+            result = 1;
+        else if (cache.TryGetValue($"{depth}:{stone}", out result))
+            return result;
+        else if (stone == 0)
+            result = CountStones(1, depth + 1);
+        else if (("" + stone).Length % 2 == 0)
         {
-             var l = RuleTwo(value);
-             return CountStones(l[0], depth + 1) + CountStones(l[1], depth + 1);
+            var parts = RuleTwo(stone);
+            result = CountStones(parts[0], depth + 1);
+            result += CountStones(parts[1], depth + 1);
         }
-        return CountStones(value * 2024, depth + 1);
+        else
+        {
+            result = CountStones(stone * 2024, depth + 1);
+        }
+
+        cache[$"{depth}:{stone}"] = result;
+
+        return result;
     }
 
     private static List<long> RuleTwo(long x)
