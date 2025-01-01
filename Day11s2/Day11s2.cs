@@ -10,16 +10,22 @@ public class Day11S2
         string line = File.ReadAllText("./Day11s2/input");
         List<long> stones = line.Split(' ').Select(long.Parse).ToList();
 
-        for (int i = 0; i < 75; i++)
+        var total = stones.AsParallel().Select(stone => CountStones(stone, 0)).Sum();
+        Console.WriteLine(total);
+    }
+
+    private static long CountStones(long value, int depth)
+    {
+        if(depth == 50) return 1;
+
+        if (value == 0) return CountStones(1, depth + 1);
+
+        if (("" + value).Length % 2 == 0)
         {
-            stones = stones.SelectMany(stone =>
-            {
-                if (stone == 0) return [1];
-                if(("" + stone).Length % 2 == 0) return RuleTwo(stone);
-                return [stone * 2024];
-            }).ToList();
+             var l = RuleTwo(value);
+             return CountStones(l[0], depth + 1) + CountStones(l[1], depth + 1);
         }
-        Console.WriteLine(stones.Count);
+        return CountStones(value * 2024, depth + 1);
     }
 
     private static List<long> RuleTwo(long x)
