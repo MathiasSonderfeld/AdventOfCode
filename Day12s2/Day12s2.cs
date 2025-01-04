@@ -94,20 +94,15 @@ public class Day12S2
         {
             for (int x = minX; x <= maxX; x++)
             {
-                var fence = fences.GetValueOrDefault(new Position(x, y));
-                if (borderDetected.Item1 && (fence == null || !fence.Contains(Direction.Up))) borderDetected.Item1 = false;
-                if (!borderDetected.Item1 && fence != null && fence.Contains(Direction.Up))
-                {
-                    borderDetected.Item1 = true;
-                    sum++;
-                }
+                var fence = fences.GetValueOrDefault(new Position(x, y)) ?? [];
+
+                var borderUp = fence.Contains(Direction.Up);
+                var borderDown = fence.Contains(Direction.Down);
                 
-                if (borderDetected.Item2 && (fence == null || !fence.Contains(Direction.Down))) borderDetected.Item2 = false;
-                if (!borderDetected.Item2 && fence != null && fence.Contains(Direction.Down))
-                {
-                    borderDetected.Item2 = true;
-                    sum++;
-                }
+                if (!borderDetected.Item1 && borderUp) sum++;
+                if (!borderDetected.Item2 && borderDown) sum++;
+                
+                borderDetected = (borderUp, borderDown);
             }
         }
         
@@ -115,20 +110,15 @@ public class Day12S2
         {
             for (int y = minY; y <= maxY; y++)
             {
-                var fence = fences.GetValueOrDefault(new Position(x, y));
-                if (borderDetected.Item1 && (fence == null || !fence.Contains(Direction.Left))) borderDetected.Item1 = false;
-                if (!borderDetected.Item1 && fence != null && fence.Contains(Direction.Left))
-                {
-                    borderDetected.Item1 = true;
-                    sum++;
-                }
+                var fence = fences.GetValueOrDefault(new Position(x, y)) ?? [];
+
+                var borderLeft = fence.Contains(Direction.Left);
+                var borderRight = fence.Contains(Direction.Right);
                 
-                if (borderDetected.Item2 && (fence == null || !fence.Contains(Direction.Right))) borderDetected.Item2 = false;
-                if (!borderDetected.Item2 && fence != null && fence.Contains(Direction.Right))
-                {
-                    borderDetected.Item2 = true;
-                    sum++;
-                }
+                if (!borderDetected.Item1 && borderLeft) sum++;
+                if (!borderDetected.Item2 && borderRight) sum++;
+                
+                borderDetected = (borderLeft, borderRight);
             }
         }
         
