@@ -12,7 +12,7 @@ public class Day12S1
     
     public static void Run()
     {
-        var lines = File.ReadAllLines("./Day12S1/input");
+        var lines = File.ReadAllLines("./Day12s1/input");
 
         map = new char[lines.Length, lines[0].Length];
         
