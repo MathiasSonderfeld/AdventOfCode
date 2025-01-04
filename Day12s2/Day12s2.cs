@@ -104,6 +104,7 @@ public class Day12S2
                 
                 borderDetected = (borderUp, borderDown);
             }
+            borderDetected = (false, false);
         }
         
         for (int x = minX; x <= maxX; x++)
@@ -120,6 +121,7 @@ public class Day12S2
                 
                 borderDetected = (borderLeft, borderRight);
             }
+            borderDetected = (false, false);
         }
         
         return sum;
