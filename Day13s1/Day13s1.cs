@@ -12,16 +12,16 @@ public class Day13S1
         input = input.Replace("\r", "");
         
         var tokens = Regex.Matches(input, @"Button A: X\+(\d+), Y\+(\d+)\nButton B: X\+(\d+), Y\+(\d+)\nPrize: X=(\d+), Y=(\d+)")
-            .Select(x => GetTokens(int.Parse(x.Groups[1].Value), int.Parse(x.Groups[2].Value), int.Parse(x.Groups[3].Value), int.Parse(x.Groups[4].Value), int.Parse(x.Groups[5].Value), int.Parse(x.Groups[6].Value)))
+            .Select(x => GetTokens(long.Parse(x.Groups[1].Value), long.Parse(x.Groups[2].Value), long.Parse(x.Groups[3].Value), long.Parse(x.Groups[4].Value), long.Parse(x.Groups[5].Value) + 10000000000000, long.Parse(x.Groups[6].Value) + 10000000000000))
             .Sum();
         
         Console.WriteLine(tokens);
     }
 
-    private static int GetTokens(int xA, int yA, int xB, int yB, int x, int y)
+    private static long GetTokens(long xA, long yA, long xB, long yB, long x, long y)
     {
-        int a = (x * yB - y * xB) / (xA * yB - yA * xB);
-        int b = (y - a * yA) / yB;
+        long a = (x * yB - y * xB) / (xA * yB - yA * xB);
+        long b = (y - a * yA) / yB;
 
         if (a * xA + b * xB != x || a * yA + b * yB != y)
         {
