@@ -77,9 +77,9 @@ public class Day16s1
         var maxY = map.GetLength(1);
         
         Console.WriteLine(direction);
-        for (int yIndex = 0; yIndex <= maxY; yIndex++)
+        for (var yIndex = 0; yIndex <= maxY; yIndex++)
         {
-            for (int xIndex = 0; xIndex <= maxX; xIndex++)
+            for (var xIndex = 0; xIndex <= maxX; xIndex++)
             {
                 Console.Write(map[xIndex, yIndex]);
             }
@@ -91,7 +91,7 @@ public class Day16s1
 public record Position(int X, int Y);
 public record PositionAndDirection(Position Position, Direction Direction);
 public record State(PositionAndDirection Current, int CurrentCosts);
-public enum Direction { NORTH, Down, Left, Right };
+public enum Direction { North, Down, Left, Right };
 
 public static class DirectionExtensions
 {
@@ -99,7 +99,7 @@ public static class DirectionExtensions
     {
         return dir switch
         {
-            Direction.NORTH => pos with { Y = pos.Y - 1 },
+            Direction.North => pos with { Y = pos.Y - 1 },
             Direction.Down => pos with { Y = pos.Y + 1 },
             Direction.Left => pos with { X = pos.X - 1 },
             Direction.Right => pos with { X = pos.X + 1 },
@@ -111,10 +111,10 @@ public static class DirectionExtensions
     {
         return dir switch
         {
-            Direction.NORTH => Direction.Left,
+            Direction.North => Direction.Left,
             Direction.Down => Direction.Right,
             Direction.Left => Direction.Down,
-            Direction.Right => Direction.NORTH,
+            Direction.Right => Direction.North,
             _ => throw new ArgumentException($"Invalid direction at position {dir}")
         };
     }
@@ -123,9 +123,9 @@ public static class DirectionExtensions
     {
         return dir switch
         {
-            Direction.NORTH => Direction.Right,
+            Direction.North => Direction.Right,
             Direction.Down => Direction.Left,
-            Direction.Left => Direction.NORTH,
+            Direction.Left => Direction.North,
             Direction.Right => Direction.Down,
             _ => throw new ArgumentException($"Invalid direction at position {dir}")
         };

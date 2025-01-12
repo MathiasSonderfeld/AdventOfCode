@@ -15,7 +15,7 @@ public class Day16s2
     
     public static void Run()
     {
-        var lines = File.ReadAllLines("./Day16s1/input");
+        var lines = File.ReadAllLines("./Day16s2/input");
         
         map = new char[lines[0].Length, lines.Length];
         
