@@ -39,6 +39,8 @@ public partial class Day17s2
         for (int i = 0; i < int.MaxValue; i++)
         {
             aRegister = i;
+            bRegister = 0;
+            cRegister = 0;
             while (instructionPointer < program.Length)
             {
                 instructions[program[instructionPointer]](program[instructionPointer + 1]);
