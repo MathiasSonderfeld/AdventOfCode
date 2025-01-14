@@ -9,6 +9,7 @@ namespace AdventOfCode.Day19s1;
 public class Day19s1
 {
     private static string[] towels;
+    public static ConcurrentDictionary<string, bool> cache = new();
     
     public static void Run()
     {
@@ -17,7 +18,7 @@ public class Day19s1
 
         var toMake = input.Skip(2).ToList();
         
-        var sum = toMake.Select(IsConstructible).Count(valid => valid);
+        var sum = toMake.AsParallel().Select(IsConstructible).Count(valid => valid);
         
         Console.WriteLine(sum);
     }
@@ -26,8 +27,13 @@ public class Day19s1
     {
         if (string.IsNullOrWhiteSpace(pattern)) return true;
         
-        return towels
+        if(cache.TryGetValue(pattern, out var isConstructible)) return isConstructible;
+        
+        var constructible = towels
             .Select(towel => pattern.StartsWith(towel) && IsConstructible(pattern[towel.Length..]))
             .Any(t => t);
+        
+        cache[pattern] = constructible;
+        return constructible;
     }
 }
