@@ -119,6 +119,12 @@
     <None Update="Day19s1\input">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Day19s2\input">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Day20s1\input">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     </ItemGroup>
 
 </Project>
