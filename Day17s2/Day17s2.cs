@@ -26,8 +26,6 @@ public partial class Day17s2
         { 7, cdv }
     };
     
-    
-    
     public static void Run()
     {
         var input = File.ReadAllText("./Day17s2/input");
@@ -55,9 +53,6 @@ public partial class Day17s2
             instructionPointer = 0;
             outputRegister.Clear();
         }
-        
-        
-        
     }
 
     private static int ResolveCombo(int input)
