@@ -76,7 +76,7 @@ public class Day18s2
 
 public record State(Position Position, int Moves);
 public record Position(int X, int Y);
-public enum Direction { North, Down, Left, Right };
+public enum Direction { Up, Down, Left, Right };
 
 public static class DirectionExtensions
 {
@@ -84,7 +84,7 @@ public static class DirectionExtensions
     {
         return dir switch
         {
-            Direction.North => pos with { Y = pos.Y - 1 },
+            Direction.Up => pos with { Y = pos.Y - 1 },
             Direction.Down => pos with { Y = pos.Y + 1 },
             Direction.Left => pos with { X = pos.X - 1 },
             Direction.Right => pos with { X = pos.X + 1 },
