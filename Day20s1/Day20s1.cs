@@ -8,7 +8,7 @@ namespace AdventOfCode.Day20s1;
 
 public class Day20s1
 {
-    public const int CheatSeconds = 20;
+    public const int CheatSeconds = 2;
     
     private static char[,] map;
     private static Position start;
@@ -56,7 +56,7 @@ public class Day20s1
         var possibleShortCuts = new List<(Position, Position, int)>();
         for (var i = 0; i < processedSteps.Count; i++)
         {
-            for (var j = i + 52; j < processedSteps.Count; j++)
+            for (var j = i + 4; j < processedSteps.Count; j++)
             {
                 if (processedSteps[i].IsShortCutAble(processedSteps[j]))
                 {
@@ -65,9 +65,9 @@ public class Day20s1
             }
         }
         
-        Console.WriteLine(possibleShortCuts.Count);
+        Console.WriteLine(possibleShortCuts.Count(state => state.Item3 >= 100));
         var t = possibleShortCuts.GroupBy(x => x.Item3).ToDictionary(x => x.Key, x => x.Count());
-        Console.WriteLine(string.Join("\n", t.Select(t => t.Key + ": " + t.Value)));
+        Console.WriteLine(string.Join(", ", t));
         
     }
     
@@ -95,7 +95,7 @@ public record Position(int X, int Y)
     {
         var deltaX = Math.Abs(X - position.X);
         var deltaY = Math.Abs(Y - position.Y);
-        return deltaX + deltaY <= Day20s1.CheatSeconds;
+        return  deltaX <= Day20s1.CheatSeconds && deltaY == 0 || deltaX == 0 && deltaY <= Day20s1.CheatSeconds;
     }
 };
 public record State(Position Position, int CurrentCosts);
