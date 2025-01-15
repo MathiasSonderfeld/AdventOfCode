@@ -58,44 +58,30 @@ public class Day20s2
         {
             for (var j = i + 52; j < processedSteps.Count; j++)
             {
-                if (processedSteps[i].IsShortCutAble(processedSteps[j]))
+                var dist = processedSteps[i].distanceTo(processedSteps[j]);
+                if (dist <= CheatSeconds)
                 {
-                    possibleShortCuts.Add((processedSteps[i], processedSteps[j], j - i - 2));
+                    possibleShortCuts.Add((processedSteps[i], processedSteps[j], j - i - dist));
                 }
             }
         }
+
+        var res = possibleShortCuts.Where(x => x.Item3 >= 100).OrderBy(x => x.Item3).ToList();
+        //Reference has 285 cheats
+        Console.WriteLine(res.Count);
+        // var t = res.GroupBy(x => x.Item3).ToDictionary(x => x.Key, x => x.Count());
+        // Console.WriteLine(string.Join("\n", t.Select(pair => pair.Key + ": " + pair.Value)));
         
-        Console.WriteLine(possibleShortCuts.Count);
-        var t = possibleShortCuts.GroupBy(x => x.Item3).ToDictionary(x => x.Key, x => x.Count());
-        Console.WriteLine(string.Join("\n", t.Select(t => t.Key + ": " + t.Value)));
-        
-    }
-    
-    private static void Visualize(Direction direction)
-    {
-        var maxX = map.GetLength(0);
-        var maxY = map.GetLength(1);
-        
-        Console.WriteLine(direction);
-        for (var yIndex = 0; yIndex <= maxY; yIndex++)
-        {
-            for (var xIndex = 0; xIndex <= maxX; xIndex++)
-            {
-                Console.Write(map[xIndex, yIndex]);
-            }
-            Console.WriteLine();
-        }
-        Console.WriteLine();
     }
 }
 
 public record Position(int X, int Y)
 {
-    public bool IsShortCutAble(Position position)
+    public int distanceTo(Position position)
     {
         var deltaX = Math.Abs(X - position.X);
         var deltaY = Math.Abs(Y - position.Y);
-        return deltaX + deltaY <= Day20s2.CheatSeconds;
+        return deltaX + deltaY;
     }
 };
 public record State(Position Position, int CurrentCosts);
