@@ -19,8 +19,12 @@ public class Day21s1
         var total = lines.Select(line =>
         {
             var start = line.Select(c => c == 'A' ? 10 : int.Parse("" + c)).ToList();
-            var input = thirdRobot.press(secondRobot.press(robot.press(start)));
-            return int.Parse(line.Substring(0, 3)) * input.Count;
+            var r1 = robot.press(start);
+            var r2 = secondRobot.press(r1);
+            var r3 = thirdRobot.press(r2);
+            Console.WriteLine($"r3: {r3.Count}");
+            var complexity =  int.Parse(line.Substring(0, 3)) * r3.Count;
+            return complexity;
         }).Sum();
         
         Console.WriteLine(total);
