@@ -16,18 +16,22 @@ public class Day21s1
         var secondRobot = new RobotCalculator(new DirectionalKeypad(10));
         var thirdRobot = new RobotCalculator(new DirectionalKeypad(10));
 
+
         var total = lines.Select(line =>
         {
             var start = line.Select(c => c == 'A' ? 10 : int.Parse("" + c)).ToList();
-            var r1 = robot.press(start);
-            var r2 = secondRobot.press(r1);
-            var r3 = thirdRobot.press(r2);
+            var r1 = robot.Press([start]);
+            var r2 = secondRobot.Press(r1);
+            var r3 = thirdRobot.Press(r2);
             Console.WriteLine($"r3: {r3.Count}");
-            var complexity =  int.Parse(line.Substring(0, 3)) * r3.Count;
+            var complexity =  int.Parse(line.Substring(0, 3)) * r3.Min(l => l.Count);
             return complexity;
         }).Sum();
-        
+
         Console.WriteLine(total);
+
+        // var res = robot.Press([[7,3]]);
+        // Console.WriteLine(String.Join("\n", res.Select(l => string.Join(", ", l.Select(c => c.AsInput())))));
     }
 }
 
@@ -35,65 +39,84 @@ class RobotCalculator(Keypad keypad)
 {
     private Keypad _keypad = keypad;
     
-    public List<int> press(List<int> values)
+    public List<List<int>> Press(List<List<int>> values)
     {
-        return values.SelectMany(value => _keypad.MoveTo(value)).ToList();
+        var allOptions = values.SelectMany(way =>
+            {
+                var res = way
+                    .Select(key => _keypad.MoveTo(key))
+                    .Aggregate((a, b) =>
+                        a.SelectMany(inner => b.Select(innerB => inner.Concat(innerB).ToList())).ToList())
+                    .ToList();
+                _keypad.Reset();
+                return res;
+            })
+            .ToList();
+
+        return allOptions;
     }
 }
 
-abstract class Keypad(int initial)
+internal abstract class Keypad(int initial)
 {
     private int _current = initial;
+    private readonly int _initial = initial;
 
+    private Dictionary<(int dx, int dy, Direction xDirection, Direction yDirection, Position currentPosition), List<List<int>>> Cache = new();
+    
     protected abstract Dictionary<int, Position> Map();
-    protected abstract int GapY();
-
-    public List<int> MoveTo(int newValue)
+    
+    public void Reset()
+    {
+        _current = _initial;
+    }
+    
+    public List<List<int>> MoveTo(int newValue)
     {
         var currentPosition = Map()[_current];
         var targetPosition = Map()[newValue];
-        var moveXFirst = currentPosition.Y != GapY();
+        _current = newValue;
+        
         var (dx, dy) = currentPosition.DistanceXY(targetPosition);
         var xdir = dx < 0 ? Direction.Right : Direction.Left;
-        var xMod = dx < 0 ? 1 : -1;
         var ydir = dy > 0 ? Direction.Up : Direction.Down;
-        var yMod = dy < 0 ? 1 : -1;
         
-        List<Direction> directions = new();
-        while (!currentPosition.Equals(targetPosition))
-        {
-            if (moveXFirst)
-            {
-                var moved = MoveDirection(ref dx, xdir, ref currentPosition, directions) || MoveDirection(ref dy, ydir, ref currentPosition, directions);
-                if (!moved)
-                {
-                    throw new Exception("FUCK");
-                }
-            }
-            else
-            {
-                var moved = MoveDirection(ref dy, ydir, ref currentPosition, directions) || MoveDirection(ref dx, xdir, ref currentPosition, directions);
-                if (!moved)
-                {
-                    throw new Exception("FUCK");
-                }
-            }
-        }
-        _current = newValue;
-        var l =  directions.Select(d => (int)d).ToList();
-        //Press current Button
-        l.Add(10);
-        return l;
+        return MoveRecursive(dx, dy, xdir, ydir, currentPosition);
     }
 
-    private bool MoveDirection(ref int delta, Direction direction, ref Position currentPosition, List<Direction> directions)
+
+
+    private List<List<int>> MoveRecursive(int dx, int dy, Direction xDirection, Direction yDirection, Position currentPosition)
+    {
+        if (dx == 0 && dy == 0)
+        {
+            return [[10]];
+        }
+        if (Cache.TryGetValue((dx, dy, xDirection, yDirection, currentPosition), out var cache))
+        {
+            return cache;
+        }
+
+        var xMove = dx != 0 ? MoveDirection(xDirection, new Step(dx, currentPosition)) : (false, null);
+        var yMove = dy != 0 ? MoveDirection(yDirection, new Step(dy, currentPosition)) : (false, null);
+        
+        var xr = xMove.canMove ? MoveRecursive(xMove.step!.Delta, dy, xDirection, yDirection, xMove.step.Position)
+            .Select(l => new List<int>{(int) xDirection}.Concat(l).ToList()).ToList() : [];
+        
+        var yr = yMove.canMove ? MoveRecursive(dx, yMove.step!.Delta, xDirection, yDirection, yMove.step.Position)
+            .Select(l => new List<int>{(int) yDirection}.Concat(l).ToList()).ToList() : [];
+
+        var total = xr.Concat(yr).ToList();
+        Cache[(dx, dy, xDirection, yDirection, currentPosition)] = total;
+        return total;
+    }
+
+    private (bool canMove, Step step) MoveDirection(Direction direction, Step step)
     {
         Position? newPosition;
-        if (delta == 0 || (newPosition = Move(currentPosition, direction)) == null) return false;
-        currentPosition = newPosition;
-        delta += direction.Modifier();
-        directions.Add(direction);
-        return true;
+        if (step.Delta == 0 || (newPosition = Move(step.Position, direction)) == null) return (false, step);
+        var newDelta = step.Delta + direction.Modifier();
+        return (true, new Step(newDelta, newPosition));
     }
 
     private Position? Move(Position position, Direction direction)
@@ -124,11 +147,6 @@ class NumericKeypad(int initial) : Keypad(initial)
     {
         return map;
     }
-
-    protected override int GapY()
-    {
-        return 3;
-    }
 }
 
 class DirectionalKeypad(int initial) : Keypad(initial)
@@ -146,15 +164,10 @@ class DirectionalKeypad(int initial) : Keypad(initial)
     {
         return map;
     }
-
-    protected override int GapY()
-    {
-        return 0;
-    }
 }
 
+public record Step(int Delta, Position Position);
 public enum Direction { Up, Down, Left, Right };
-
 public static class IntExtensions
 {
     public static char AsInput(this int input)
@@ -170,7 +183,6 @@ public static class IntExtensions
         };
     }
 }
-
 public static class DirectionExtensions
 {
     public static Position GetNeighbourInDirection(this Direction dir, Position pos)
