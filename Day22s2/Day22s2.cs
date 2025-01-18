@@ -11,42 +11,38 @@ public class Day22s2
     private static List<List<(int, int)>> _monkeyNumbers = [];
     private static int sequencesChecked = 0;
     private static int sequences = 0;
+    private static Dictionary<Sequence, int> _bananasDict = new ();
+    private static HashSet<Sequence> _alreadySold = new();
     
     public static void Run()
     {
         var lines = File.ReadAllLines("./Day22s2/input");
 
         var initialSecrets = lines.Select(long.Parse);
-        //List<long> initialSecrets = [123];
         
         foreach (var initialSecret in initialSecrets)
         {
-            var list = new List<(int, int)>();
             var result = initialSecret;
-            int previous = 0;
-            list.Add(((int) (result % 10), 0));
+            var sequence = new Sequence();
+            var previous = 0;
+            
             for (var i = 0; i < 2000; i++)
             {
                 result = CalculateNewSecret(result);
                 var current = (int) (result % 10);
-                list.Add((current, current - previous));
+                sequence = sequence.SetCurrent(current - previous);
                 previous = current;
+                if (i < 4 || _alreadySold.Contains(sequence)) continue;
+                if (!_bananasDict.TryAdd(sequence, current))
+                {
+                    _bananasDict[sequence] += current;
+                    _alreadySold.Add(sequence);
+                }
             }
-            _monkeyNumbers.Add(list);
+            _alreadySold.Clear();
         }
 
-        List<int> changes = [-9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        
-        var possibleSequences = (
-            from change1 in changes 
-            from change2 in changes
-            from change3 in changes
-            from change4 in changes
-            select (List<int>)[change1, change2, change3, change4]).ToList();
-        
-        sequences = possibleSequences.Count;
-        
-        var money = possibleSequences.AsParallel().Select(CalculateMoney).Max();
+        var money = _bananasDict.Values.Max();
         Console.WriteLine(money);
     }
 
@@ -115,5 +111,13 @@ public class Day22s2
         result = secretNumber ^ result;
         //return result % 16777216;
         return result & 16777215;
+    }
+}
+
+internal record Sequence(int First = 0, int Second = 0, int Third = 0, int Fourth = 0)
+{
+    public Sequence SetCurrent(int value)
+    {
+        return new Sequence(Second, Third, Fourth, value);
     }
 }
