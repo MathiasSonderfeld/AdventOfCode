@@ -11,20 +11,31 @@ public class Day21s1
     
     public static void Run()
     {
+        var test = new Test(File.ReadAllText("./Day21s1/input"));
+        Console.WriteLine(test.Run());
+        /*
         var lines = File.ReadAllLines("./Day21s1/input");
         var robot = new RobotCalculator(new NumericKeypad(10));
-        var secondRobot = new RobotCalculator(new DirectionalKeypad(10));
+        var directionalRobot = new RobotCalculator(new DirectionalKeypad(10));
+        
         var thirdRobot = new RobotCalculator(new DirectionalKeypad(10));
-
 
         var total = lines.Select(line =>
         {
             var start = line.Select(c => c == 'A' ? 10 : int.Parse("" + c)).ToList();
-            var r1 = robot.Press([start]);
-            var r2 = secondRobot.Press(r1);
-            var r3 = thirdRobot.Press(r2);
-            Console.WriteLine($"r3: {r3.Count}");
-            var complexity =  int.Parse(line.Substring(0, 3)) * r3.Min(l => l.Count);
+            var startQueue = new PriorityQueue<List<int>, int>();
+            startQueue.Enqueue(start, start.Count);
+            var r1 = robot.Press(startQueue);
+            var output = r1;
+            
+            for (int i = 0; i < 25; i++)
+            {
+                output = directionalRobot.Press(output);
+                Console.WriteLine($"{i+1}/25");
+            }
+            Console.WriteLine($"r3: {output.Count}");
+            var leastActions = output.Dequeue();
+            var complexity =  int.Parse(line.Substring(0, 3)) * leastActions.Count;
             return complexity;
         }).Sum();
 
@@ -32,6 +43,7 @@ public class Day21s1
 
         // var res = robot.Press([[7,3]]);
         // Console.WriteLine(String.Join("\n", res.Select(l => string.Join(", ", l.Select(c => c.AsInput())))));
+        */
     }
 }
 
@@ -39,21 +51,33 @@ class RobotCalculator(Keypad keypad)
 {
     private Keypad _keypad = keypad;
     
-    public List<List<int>> Press(List<List<int>> values)
+    public PriorityQueue<List<int>, int> Press(PriorityQueue<List<int>, int> values)
     {
-        var allOptions = values.SelectMany(way =>
-            {
-                var res = way
-                    .Select(key => _keypad.MoveTo(key))
-                    .Aggregate((a, b) =>
-                        a.SelectMany(inner => b.Select(innerB => inner.Concat(innerB).ToList())).ToList())
-                    .ToList();
-                _keypad.Reset();
-                return res;
-            })
-            .ToList();
+        var leastLenth = int.MaxValue;
+        var reaultQueue = new PriorityQueue<List<int>, int>();
+        while (values.Count > 0)
+        {
+            var possibility = values.Dequeue();
 
-        return allOptions;
+            if (possibility.Count > leastLenth)
+            {
+                break;
+            } 
+            leastLenth = possibility.Count;
+
+            var res = possibility
+                .Select(key => _keypad.MoveTo(key))
+                .AsParallel()
+                .Aggregate((a, b) =>
+                    a.SelectMany(inner => b.Select(innerB => inner.Concat(innerB).ToList())).ToList())
+                .ToList();
+            _keypad.Reset();
+            foreach (var r in res)
+            {
+                reaultQueue.Enqueue(r, r.Count);
+            }
+        }
+        return reaultQueue;
     }
 }
 
